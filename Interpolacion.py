@@ -4,31 +4,92 @@ from tkinter import *
 import matplotlib.pyplot as plt
 import numpy as np
 
+# def polGenerico(x, y, grado): # Anda bien
+#     coeficientes = np.polyfit(x, y, grado)
+#     polinomio = np.poly1d(coeficientes)
+#     print(polinomio)
+
+def validarDenomminador(denominador):
+    if denominador == 0:
+        cartelErrorDivPor0.place(x=posX, y=415)
+        raise Exception("División por 0")
+
+def obtenerPolLagrange(pares):
+    n = len(pares)
+    polinomio = np.poly1d(0)
+    for i in range(n):
+        termino = np.poly1d(pares[i][1])
+        for j in range(n):
+            if j != i:
+                denominador = pares[i][0] - pares[j][0]
+                validarDenomminador(denominador)
+                termino *= np.poly1d([1, -pares[j][0]]) / denominador
+        polinomio += termino
+    return polinomio
+
 def deshabilitarBotones():
     getElementoPorTexto(Button, "Diferencias Divididas").config(state=DISABLED)
     getElementoPorTexto(Button, "Coeficientes Incrementales").config(state=DISABLED)
     getElementoPorTexto(Button, "Lagrange").config(state=DISABLED)
 
-def difDiv():
-    deshabilitarBotones()
-    seccion2.grid(row=1, column=0, padx=35, pady=415, sticky="w")
-    Label(content_frame2, text="x^3 + 2x^2 - 1", font=("Arial", 11)).grid(row=0, column=0, padx=10, pady=10)
-    label(posX, 515, "Grado del Polinomio Interpolador: ")
-    Button(root, text="Ver Gráfico").place(x=posX, y=545)
+def agregarExponentes(polinomio):
+    exponente = int(inputCantNros.get()) - 1
+    coeficientes = polinomio.coeffs
+    polinomioConExponentes = ''
+    for coeficiente in coeficientes:
+        polinomioConExponentes += f'{round(float(coeficiente), 2)} x^{exponente} + '
+        exponente -= 1
+    polinomioConExponentes = polinomioConExponentes.rstrip(' + ')
+    polFormat = polinomioConExponentes.replace("x^0", "")
+    polFormat = polFormat.replace("x^1", "x")
+    return polFormat
 
-def mostrarBotonesDeCalculo():
+def graficarPol(pol, puntos):
+    min = float(inputCotaMin.get()) + 1
+    max = float(inputCotaMax.get()) + 1
+    puntosX = [punto[0] for punto in puntos]
+    puntosY = [punto[1] for punto in puntos]
+
+    polinomio = np.poly1d(pol)
+    x = np.linspace(min, max, 100)
+    y = polinomio(x)
+    fig, ax = plt.subplots()
+    ax.set_xlim(min, max)
+    ax.set_ylim(min, max)
+    plt.plot(x, y, color='blue')
+    plt.scatter(puntosX, puntosY, color='red')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Polinomio Interpolador')
+    plt.grid(True)
+    plt.show()
+
+def lagrange(puntos):
+    deshabilitarBotones()
+    polSinExp = obtenerPolLagrange(puntos)
+    polConExp = agregarExponentes(polSinExp)
+    seccion2.grid(row=1, column=0, padx=35, pady=415, sticky="w")
+    Label(content_frame2, text=polConExp, font=("Arial", 11)).grid(row=0, column=0, padx=10, pady=10)
+    label(posX, 515, f"Grado del Polinomio Interpolador: {int(inputCantNros.get())-1}")
+    Button(root, text="Ver Gráfico", command=lambda: graficarPol(polSinExp, puntos)).place(x=posX, y=545)
+
+def mostrarBotonesDeCalculo(puntos):
     y = 350
     label(posX, y, "Elija el método con el cual obtener un Polinomio Interpolador:")
     y += 30
-    Button(root, text="Diferencias Divididas", command=difDiv).place(x=posX, y=y)
+    Button(root, text="Diferencias Divididas").place(x=posX, y=y)
     Button(root, text="Coeficientes Incrementales").place(x=150, y=y)
-    Button(root, text="Lagrange").place(x=330, y=y)
+    Button(root, text="Lagrange", command=lambda: lagrange(puntos)).place(x=330, y=y)
+
+def generarXY(min, max):
+    return round(random.uniform(min, max), 1), round(random.uniform(min, max), 1)
 
 def generarPuntos(cantPtos, min, max):
     puntos = []
-    for _ in range(cantPtos):
-        x = round(random.uniform(min, max), 1)
-        y = round(random.uniform(min, max), 1)
+    for i in range(cantPtos):
+        x, y = generarXY(min, max)
+        while x in [punto[0] for punto in puntos]:
+            x, y = generarXY(min, max)
         puntos.append((x, y))
     return puntos
 
@@ -52,7 +113,7 @@ def armarYMostrarPuntos():
     validarCotas()
     puntos = generarPuntos(int(inputCantNros.get()), float(inputCotaMin.get()), float(inputCotaMax.get()))
     mostrarPuntos(puntos)
-    mostrarBotonesDeCalculo()
+    mostrarBotonesDeCalculo(puntos)
 
 def ingresarCotas():
     yIngresarCotas = 140
@@ -72,7 +133,7 @@ def getElementoPorTexto(tipoElemento, texto):
 
 def validarCantPtosIngresado():
     cartelErrorCantPtos.place_forget()
-    if inputCantNros.get() != "":
+    if inputCantNros.get() != "" and inputCantNros.get() != "0":
         inputCantNros.config(state=DISABLED)
         getElementoPorTexto(Button, "Siguiente").config(state=DISABLED)
         ingresarCotas()
@@ -84,7 +145,7 @@ def teclaValidaCotas(input):
     return re.match(r"^(?:-)?\d*(?:\.\d*)?$", input) is not None
 
 def teclaValidaCantPtos(input):
-    return re.match(r"^(1?[1-9]|20)?$", input) is not None
+    return re.match(r"^(1?[0-9]|20)?$", input) is not None
 
 def labelBold(x, y, texto, font=11):
     Label(root, text=texto, font=("Arial", font, "bold")).place(x=x, y=y)
@@ -143,52 +204,9 @@ inputCotaMax = Entry(root, validate="key", validatecommand=(root.register(teclaV
 
 cartelErrorCantPtos = Label(root, text="Vacío", font=("Arial", 11), fg="red")
 cartelErrorCotas = Label(root, text="Error, reintente", font=("Arial", 11), fg="red")
+cartelErrorDivPor0 = Label(root, text="Error, se produjo una división por 0. Reinicie la app y reintente", font=("Arial", 11), fg="red")
 
 titulos()
 inicio()
 
 root.mainloop()
-
-# def grafPol(pol, puntos, min, max, titulo):
-#     x_vals = np.linspace(min, max, 200)
-#     y_vals = []
-#     for x in x_vals:
-#         y = 0
-#         for termino in pol:
-#             producto = 1
-#             for factor in termino[:-1]:
-#                 producto *= eval(factor.replace("x", str(x)))
-#             y += termino[-1] * producto
-#         y_vals.append(y)
-#     plt.plot(x_vals, y_vals)
-#     plt.scatter(*zip(*puntos), color="red")
-#     plt.legend()
-#     plt.xlabel("x")
-#     plt.ylabel("y")
-#     plt.grid()
-#     plt.title(f"Polinomio Interpolador - {titulo}")
-#     plt.show()
-#
-# def calcular_diferencias_divididas(pares):
-#     n = len(pares)
-#     diferencias = [[0] * n for _ in range(n)]
-#     for i in range(n):
-#         diferencias[i][0] = pares[i][1]
-#     for j in range(1, n):
-#         for i in range(n - j):
-#             diferencias[i][j] = (diferencias[i + 1][j - 1] - diferencias[i][j - 1]) / (pares[i + j][0] - pares[i][0])
-#     return diferencias[0]
-#
-# def calcular_polinomio_interpolador(pares, diferencias):
-#     n = len(pares)
-#     polinomio = []
-#     for i in range(n):
-#         termino = [diferencias[i]]
-#         for j in range(i):
-#             termino.insert(0, f"(x - {pares[j][0]})")
-#         polinomio.append(termino)
-#     return polinomio
-#
-# def crearPol(puntos):
-#     coef = calcular_diferencias_divididas(puntos)
-#     return calcular_polinomio_interpolador(puntos, coef)
