@@ -43,18 +43,19 @@ def agregarExponentes(polinomio):
     return polinomioConExponentes.replace("x^0 + ", "").replace("x^1 ", "x ")
 
 def graficarPol(pol, puntos):
-    min = float(inputCotaMin.get()) + 1
+    min = float(inputCotaMin.get()) - 1
     max = float(inputCotaMax.get()) + 1
     puntosX = [punto[0] for punto in puntos]
     puntosY = [punto[1] for punto in puntos]
 
-    polinomio = np.poly1d(pol)
+    #polinomio = np.poly1d(pol)
     x = np.linspace(min, max, 100)
-    y = polinomio(x)
+    y = pol(x)
     fig, ax = plt.subplots()
+
+    plt.plot(x, y, color='blue')
     ax.set_xlim(min, max)
     ax.set_ylim(min, max)
-    plt.plot(x, y, color='blue')
     plt.scatter(puntosX, puntosY, color='red')
     plt.xlabel('x')
     plt.ylabel('y')
@@ -66,6 +67,7 @@ def lagrange(puntos):
     deshabilitarBotones()
     polSinExp = obtenerPolLagrange(puntos)
     polConExp = agregarExponentes(polSinExp)
+    print(f"Polinomio Interpolador: {polConExp}")
     seccion2.grid(row=1, column=0, padx=35, pady=415, sticky="w")
     Label(content_frame2, text=polConExp, font=("Arial", 11)).grid(row=0, column=0, padx=10, pady=10)
     label(posX, 515, f"Grado del Polinomio Interpolador: {int(inputCantNros.get())-1}")
