@@ -28,7 +28,7 @@ def obtenerPolNewton(puntos):
 def newton(puntos):
     deshabilitarBotones()
     polSinExp = obtenerPolNewton(puntos)
-    mostrarPol(polSinExp, puntos)
+    mostrarPol(polSinExp, puntos, "Newton")
 
 def validarDenominador(denominador):
     if denominador == 0:
@@ -62,7 +62,7 @@ def agregarExponentes(polinomio):
         exponente -= 1
     return polinomioConExponentes.replace("x^0 + ", "").replace("x^1 ", "x ")
 
-def graficarPol(pol, puntos, raices):
+def graficarPol(pol, puntos, raices, metodo):
     min = float(inputCotaMin.get()) - 1
     max = float(inputCotaMax.get()) + 1
     puntosX = [punto[0] for punto in puntos]
@@ -80,12 +80,12 @@ def graficarPol(pol, puntos, raices):
     plt.scatter(raices, listaCeros, color='green', label="Raices")
     plt.xlabel('x')
     plt.ylabel('y')
-    plt.title('Polinomio Interpolador')
+    plt.title(f'Polinomio Interpolador {metodo}')
     plt.grid(True)
     plt.legend()
     plt.show()
 
-def mostrarPol(polSinExp, puntos):
+def mostrarPol(polSinExp, puntos, metodo):
     polConExp = agregarExponentes(polSinExp)
     raices = obtenerRaices([coef for coef in polSinExp])
     print(f"Raices: {raices}")
@@ -93,14 +93,14 @@ def mostrarPol(polSinExp, puntos):
     seccion2.grid(row=1, column=0, padx=35, pady=415, sticky="w")
     Label(content_frame2, text=polConExp, font=("Arial", 11)).grid(row=0, column=0, padx=10, pady=10)
     label(posX, 515, f"Grado del Polinomio Interpolador: {int(inputCantNros.get())-1}")
-    Button(root, text="Ver Gráfico", command=lambda: graficarPol(polSinExp, puntos, raices)).place(x=posX, y=545)
+    Button(root, text="Ver Gráfico", command=lambda: graficarPol(polSinExp, puntos, raices, metodo)).place(x=posX, y=545)
     label(posX, 580, "Aclaración: Este programa ordena los puntos según la X")
     label(posX, 605, "El Polinomio Interpolador siempre será el mismo, sin importar el orden de los puntos")
 
 def lagrange(puntos):
     deshabilitarBotones()
     polSinExp = obtenerPolLagrange(puntos)
-    mostrarPol(polSinExp, puntos)
+    mostrarPol(polSinExp, puntos, "Lagrange")
 
 def mostrarBotonesDeCalculo(puntos):
     y = 350
