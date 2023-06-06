@@ -34,15 +34,13 @@ def deshabilitarBotones():
 
 def agregarExponentes(polinomio):
     exponente = int(inputCantNros.get()) - 1
-    coeficientes = polinomio.coeffs
     polinomioConExponentes = ''
-    for coeficiente in coeficientes:
-        polinomioConExponentes += f'{round(float(coeficiente), 2)} x^{exponente} + '
+    for coef in polinomio.coeffs:
+        coef = float(coef)
+        coef = "{:.1e}".format(coef).replace("e-0", "e-").replace("e+0", "e+").replace("e0", "e") if round(coef, 2) == -0.0 or round(coef, 2) == 0.0 else round(coef, 2)
+        polinomioConExponentes += f'{coef} x^{exponente} + '
         exponente -= 1
-    polinomioConExponentes = polinomioConExponentes.rstrip(' + ')
-    polFormat = polinomioConExponentes.replace("x^0", "")
-    polFormat = polFormat.replace("x^1", "x")
-    return polFormat
+    return polinomioConExponentes.replace("x^0 + ", "").replace("x^1 ", "x ")
 
 def graficarPol(pol, puntos):
     min = float(inputCotaMin.get()) + 1
