@@ -94,8 +94,6 @@ def mostrarPol(polSinExp, puntos, metodo):
     Label(content_frame2, text=polConExp, font=("Arial", 11)).grid(row=0, column=0, padx=10, pady=10)
     label(posX, 515, f"Grado del Polinomio Interpolador: {int(inputCantNros.get())-1}")
     Button(root, text="Ver Gráfico", command=lambda: graficarPol(polSinExp, puntos, raices, metodo)).place(x=posX, y=545)
-    label(posX, 580, "Aclaración: Este programa ordena los puntos según la X")
-    label(posX, 605, "El Polinomio Interpolador siempre será el mismo, sin importar el orden de los puntos")
 
 def lagrange(puntos):
     deshabilitarBotones()
@@ -200,7 +198,7 @@ def on_canvas_configure2(event):
     canvas2.configure(scrollregion=canvas2.bbox("all"))
 
 root = Tk()
-root.geometry("800x650")
+root.geometry("800x600")
 root.resizable(False, False)
 root.title("Polinomio Interpolador")
 
